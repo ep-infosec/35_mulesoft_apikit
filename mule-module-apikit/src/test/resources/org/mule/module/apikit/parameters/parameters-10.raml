@@ -1,0 +1,53 @@
+#%RAML 1.0
+
+title: Parameters API
+
+types:
+  boolean-array:
+    type: boolean[]
+    minItems: 3
+    maxItems: 4
+
+/repeat:
+    get:
+        queryParameters:
+            boolean-array:
+                type: boolean-array
+                required: false
+            union-boolean-array:
+                type: nil | boolean-array
+                required: false
+            status:
+                type: string[]
+                minItems: 1
+                required: false
+            default:
+              type: string
+              default: "default value"
+              required: false
+            union-string:
+                type: nil | string
+                required: false
+            string-type:
+                type: string
+                required: false
+            integer-nil-type:
+                type: integer | nil
+                required: false
+            integer-type:
+                type: integer
+                required: false
+        responses:
+            200:
+                body:
+                    text/plain: ~
+
+/repeatHeader:
+    get:
+        headers:
+            repeatable:
+                type: array
+        responses:
+            200:
+                body:
+                    text/plain: ~

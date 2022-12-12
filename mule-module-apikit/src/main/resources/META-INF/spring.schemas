@@ -1,0 +1,3 @@
+http\://www.mulesoft.org/schema/mule/apikit/3.3/mule-apikit.xsd=META-INF/mule-apikit.xsd
+http\://www.mulesoft.org/schema/mule/apikit/3.4/mule-apikit.xsd=META-INF/mule-apikit.xsd
+http\://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd=META-INF/mule-apikit.xsd

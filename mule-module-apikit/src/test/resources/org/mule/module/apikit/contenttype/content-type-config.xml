@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd">
+
+
+    <apikit:mapping-exception-strategy name="Global_Mapping_Exception_Strategy">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException"/>
+            <set-payload value="resource not found"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException"/>
+            <set-payload value="method not allowed"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException"/>
+            <set-payload value="unsupported media type"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException"/>
+            <set-payload value="not acceptable"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException"/>
+            <set-payload value="bad request"/>
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+
+    <apikit:config raml="org/mule/module/apikit/contenttype/content-type.yaml"/>
+
+    <flow name="doorway">
+        <http:inbound-endpoint port="${serverPort}" host="localhost" path="api"/>
+        <apikit:router/>
+        <exception-strategy ref="Global_Mapping_Exception_Strategy"/>
+    </flow>
+
+    <flow name="get:/resources">
+        <logger level="INFO" message="siamo qui"/>
+        <set-payload value="#[org.mule.transport.NullPayload.getInstance()]"/>
+    </flow>
+
+    <flow name="get:/multitype">
+        <logger level="INFO" message="content type hint: #[message.inboundProperties.ctype]"/>
+        <choice>
+            <when expression="#[message.inboundProperties.ctype == 'json']">
+                <logger level="INFO" message="returning json"/>
+                <set-property propertyName="Content-Type" value="application/json"/>
+            </when>
+            <when expression="#[message.inboundProperties.ctype == 'xml']">
+                <logger level="INFO" message="returning xml"/>
+                <set-property propertyName="Content-Type" value="application/xml"/>
+            </when>
+            <otherwise>
+                <logger level="INFO" message="returning html"/>
+                <set-property propertyName="Content-Type" value="text/html"/>
+            </otherwise>
+        </choice>
+        <set-payload value="#[org.mule.transport.NullPayload.getInstance()]"/>
+        <set-payload value="never mind"/>
+    </flow>
+
+    <flow name="get:/multistatus">
+        <choice>
+            <when expression="#[message.inboundProperties.ctype == 'zip']">
+                <set-property propertyName="http.status" value="#[200]" />
+                <logger level="INFO" message="returning zip with 200 Ok"/>
+                <set-property propertyName="Content-Type" value="application/zip"/>
+                <set-payload value="#[org.mule.transport.NullPayload.getInstance()]"/>
+            </when>
+            <otherwise>
+                <set-property propertyName="http.status" value="#[202]"/>
+                <set-property propertyName="Content-Type" value="application/json"/>
+                <logger level="INFO" message="returning json with 202 Accepted"/>
+                <set-payload value="{ &quot;message&quot;: &quot;Data request accepted.&quot; }"/>
+            </otherwise>
+        </choice>
+    </flow>
+
+
+    <flow name="get:/encoding">
+        <set-payload value="never mind" mimeType="application/json" encoding="UTF-8"/>
+    </flow>
+
+    <flow name="post:/multicontenttype">
+        <set-payload value="never mind"/>
+    </flow>
+
+</mule>
